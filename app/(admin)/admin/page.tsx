@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const stats = [
   {
@@ -70,64 +73,59 @@ const statusColors: Record<string, string> = {
   Processing: "bg-blue-500/15 text-blue-300 border-blue-500/20",
 };
 
-// SVG donut chart for Service Distribution
+// Recharts donut chart for Service Distribution
 function DonutChart() {
-  // Total = 100, segments: Heritage Events 45%, Private Curations 25%, Legacy Artisans 30%
-  const segments = [
-    { pct: 45, color: "#F2CA50", label: "Heritage Events" },
-    { pct: 25, color: "#4ade80", label: "Private Curations" },
-    { pct: 30, color: "#6b7280", label: "Legacy Artisans" },
+  const chartData = [
+    { name: "Heritage Events", value: 45, color: "#F2CA50" },
+    { name: "Private Curations", value: 25, color: "#4ade80" },
+    { name: "Legacy Artisans", value: 30, color: "#6b7280" },
   ];
-  const r = 60;
-  const cx = 80;
-  const cy = 80;
-  const circumference = 2 * Math.PI * r;
-
-  let cumulative = 0;
-  const slices = segments.map((seg) => {
-    const strokeDasharray = `${(seg.pct / 100) * circumference} ${circumference}`;
-    const rotation = (cumulative / 100) * 360 - 90;
-    cumulative += seg.pct;
-    return { ...seg, strokeDasharray, rotation };
-  });
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="relative">
-        <svg width="160" height="160" viewBox="0 0 160 160">
-          {slices.map((slice, i) => (
-            <circle
-              key={i}
-              cx={cx}
-              cy={cy}
-              r={r}
-              fill="none"
-              stroke={slice.color}
-              strokeWidth="22"
-              strokeDasharray={slice.strokeDasharray}
-              strokeDashoffset="0"
-              transform={`rotate(${slice.rotation} ${cx} ${cy})`}
-              strokeLinecap="butt"
-              style={{ transition: "stroke-dasharray 0.6s ease" }}
+    <div className="flex flex-col items-center gap-5">
+      <div className="relative w-full h-44 flex items-center justify-center">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={66}
+              paddingAngle={3}
+              dataKey="value"
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} stroke="#161616" strokeWidth={2} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1a1a1a",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "2px",
+                color: "#e2e8f0",
+                fontSize: "11px",
+                fontFamily: "var(--font-sans)",
+              }}
+              itemStyle={{ color: "#e2e8f0" }}
             />
-          ))}
-          {/* Center text */}
-          <text x={cx} y={cy - 6} textAnchor="middle" className="font-sans" fontSize="20" fontWeight="600" fill="#F2CA50">
-            24
-          </text>
-          <text x={cx} y={cy + 12} textAnchor="middle" className="font-sans" fontSize="8" fill="#78716c" letterSpacing="1">
-            CULTURES
-          </text>
-        </svg>
+          </PieChart>
+        </ResponsiveContainer>
+        {/* Center text overlay */}
+        <div className="absolute flex flex-col items-center justify-center pointer-events-none">
+          <span className="text-xl font-semibold text-[#F2CA50] font-sans leading-none">24</span>
+          <span className="text-[8px] tracking-[0.15em] text-stone-500 font-sans uppercase font-semibold mt-1">Cultures</span>
+        </div>
       </div>
       <div className="w-full space-y-2">
-        {segments.map((seg) => (
-          <div key={seg.label} className="flex items-center justify-between text-xs font-sans">
+        {chartData.map((seg) => (
+          <div key={seg.name} className="flex items-center justify-between text-xs font-sans">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: seg.color }} />
-              <span className="text-stone-400">{seg.label}</span>
+              <span className="text-stone-400">{seg.name}</span>
             </div>
-            <span className="font-semibold text-stone-300">{seg.pct}%</span>
+            <span className="font-semibold text-stone-300">{seg.value}%</span>
           </div>
         ))}
       </div>

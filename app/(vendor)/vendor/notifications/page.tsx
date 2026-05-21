@@ -159,10 +159,11 @@ export default function VendorNotificationsPage() {
         {paged.map((notif) => (
           <div
             key={notif.id}
-            className={`flex items-start gap-4 px-5 py-4 rounded-sm border transition-all duration-200 ${notif.read
+            className={`flex items-start gap-4 px-5 py-4 rounded-sm border transition-all duration-200 ${
+              notif.read
                 ? "bg-[#161616] border-white/5"
                 : "bg-[#161616] border-[#F2CA50]/15 border-l-2 border-l-[#F2CA50]"
-              }`}
+            }`}
           >
             {/* Icon */}
             <div className="h-9 w-9 flex-shrink-0 flex items-center justify-center rounded-sm bg-white/5 border border-white/8 mt-0.5">
@@ -221,10 +222,11 @@ export default function VendorNotificationsPage() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`h-8 w-8 flex items-center justify-center rounded-sm text-xs font-sans font-semibold transition-all duration-200 cursor-pointer ${p === page
+                className={`h-8 w-8 flex items-center justify-center rounded-sm text-xs font-sans font-semibold transition-all duration-200 cursor-pointer ${
+                  p === page
                     ? "bg-[#F2CA50]/15 border border-[#F2CA50]/30 text-[#F2CA50]"
                     : "border border-white/8 text-stone-500 hover:border-white/15 hover:text-stone-300"
-                  }`}
+                }`}
               >
                 {p}
               </button>
