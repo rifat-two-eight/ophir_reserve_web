@@ -23,14 +23,14 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const navLinks = [
-    { href: "/explore", label: "Explore" },
+    { href: "/", label: "Explore" },
     { href: "/cultures", label: "Cultures" },
     { href: "/vendors", label: "Vendors" },
   ];
 
   return (
     <nav className="fixed top-0 w-full z-[100] bg-black/60 backdrop-blur-md border-b border-white/5">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-0 h-20 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center relative z-[110]">
           <span className="text-xl md:text-2xl font-bold text-[#F2CA50] tracking-[0.1em] uppercase">
