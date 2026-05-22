@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const navItems = [
@@ -57,6 +57,7 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [fullName, setFullName] = useState("John Doe");
   const [avatar, setAvatar] = useState("");
 
@@ -127,7 +128,10 @@ export default function AdminSidebar() {
 
       {/* Logout */}
       <div className="px-4 pb-4 border-t border-white/5 pt-4">
-        <button className="flex items-center gap-3.5 w-full px-4 py-3 rounded-sm text-xs uppercase tracking-[0.12em] font-sans font-semibold text-stone-500 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200 border border-transparent cursor-pointer">
+        <button 
+          onClick={() => router.push("/started")}
+          className="flex items-center gap-3.5 w-full px-4 py-3 rounded-sm text-xs uppercase tracking-[0.12em] font-sans font-semibold text-stone-500 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200 border border-transparent cursor-pointer"
+        >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
