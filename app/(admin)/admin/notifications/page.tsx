@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+// notification
 interface Notification {
   id: string;
   title: string;
@@ -160,8 +161,8 @@ export default function VendorNotificationsPage() {
           <div
             key={notif.id}
             className={`flex items-start gap-4 px-5 py-4 rounded-sm border transition-all duration-200 ${notif.read
-                ? "bg-[#161616] border-white/5"
-                : "bg-[#161616] border-[#F2CA50]/15 border-l-2 border-l-[#F2CA50]"
+              ? "bg-[#161616] border-white/5"
+              : "bg-[#161616] border-[#F2CA50]/15 border-l-2 border-l-[#F2CA50]"
               }`}
           >
             {/* Icon */}
@@ -222,8 +223,8 @@ export default function VendorNotificationsPage() {
                 key={p}
                 onClick={() => setPage(p)}
                 className={`h-8 w-8 flex items-center justify-center rounded-sm text-xs font-sans font-semibold transition-all duration-200 cursor-pointer ${p === page
-                    ? "bg-[#F2CA50]/15 border border-[#F2CA50]/30 text-[#F2CA50]"
-                    : "border border-white/8 text-stone-500 hover:border-white/15 hover:text-stone-300"
+                  ? "bg-[#F2CA50]/15 border border-[#F2CA50]/30 text-[#F2CA50]"
+                  : "border border-white/8 text-stone-500 hover:border-white/15 hover:text-stone-300"
                   }`}
               >
                 {p}
