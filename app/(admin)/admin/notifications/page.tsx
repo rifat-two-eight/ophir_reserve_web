@@ -155,7 +155,6 @@ export default function VendorNotificationsPage() {
         </p>
       )}
 
-      {/* Notification List */}
       <div className="space-y-2">
         {paged.map((notif) => (
           <div
