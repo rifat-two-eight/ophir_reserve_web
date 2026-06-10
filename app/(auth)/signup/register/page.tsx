@@ -1,13 +1,26 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+
+interface Invitation {
+  id: string;
+  name: string;
+  email: string;
+  category: string;
+  status: "Pending" | "Accepted" | "Expired";
+  sentAt: string;
+  expiresAt: string;
+  joinedAt?: string;
+  membershipStatus?: string;
+}
 
 function RegisterFormContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const roleParam = searchParams.get("role") || "client";
+  const inviteCodeParam = searchParams.get("inviteCode") || "";
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -16,8 +29,52 @@ function RegisterFormContent() {
     confirmPassword: "",
   });
 
+  const [inviteCode, setInviteCode] = useState(inviteCodeParam);
+  const [validationStatus, setValidationStatus] = useState<"idle" | "valid" | "invalid" | "expired">("idle");
+  const [matchedInvite, setMatchedInvite] = useState<Invitation | null>(null);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (roleParam !== "vendor") return;
+
+    if (!inviteCode.trim()) {
+      setValidationStatus("idle");
+      setMatchedInvite(null);
+      return;
+    }
+
+    const stored = localStorage.getItem("ophir_vendor_invitations");
+    if (stored) {
+      try {
+        const invitations: Invitation[] = JSON.parse(stored);
+        const invite = invitations.find(
+          (inv) => inv.id.toLowerCase() === inviteCode.trim().toLowerCase()
+        );
+
+        if (!invite) {
+          setValidationStatus("invalid");
+          setMatchedInvite(null);
+        } else {
+          const now = new Date();
+          const isExpired = invite.status === "Expired" || new Date(invite.expiresAt) < now;
+
+          if (isExpired) {
+            setValidationStatus("expired");
+            setMatchedInvite(invite);
+          } else {
+            setValidationStatus("valid");
+            setMatchedInvite(invite);
+            // Autofill the email from invitation
+            setFormData((prev) => ({ ...prev, email: invite.email, fullName: invite.name }));
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [inviteCode, roleParam]);
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
@@ -38,8 +95,56 @@ function RegisterFormContent() {
       alert("Passwords do not match!");
       return;
     }
+
+    if (roleParam === "vendor") {
+      if (validationStatus !== "valid" || !matchedInvite) {
+        alert("Please provide a valid, active administrative invitation code.");
+        return;
+      }
+
+      // Mark invite as Accepted
+      const stored = localStorage.getItem("ophir_vendor_invitations");
+      if (stored) {
+        try {
+          const invitations: Invitation[] = JSON.parse(stored);
+          const updated = invitations.map((inv) =>
+            inv.id === matchedInvite.id
+              ? {
+                  ...inv,
+                  status: "Accepted" as const,
+                  joinedAt: new Date().toISOString(),
+                  membershipStatus: "Active",
+                }
+              : inv
+          );
+          localStorage.setItem("ophir_vendor_invitations", JSON.stringify(updated));
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // Store in vendor_profile
+      const vendorProfile = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: "+1 (555) 019-2831",
+        role: "Vendor",
+        bio: `Elite provider of curated ${matchedInvite.category} services. Joined Ophir via Invitation Code ${matchedInvite.id}.`,
+        avatar: "",
+      };
+      localStorage.setItem("vendor_profile", JSON.stringify(vendorProfile));
+
+      // Trigger profile updates
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("vendor_profile_update"));
+      }
+
+      alert("Vendor registration registry created successfully!");
+      router.push("/vendor");
+      return;
+    }
+
     console.log("Form Submitted:", { ...formData, role: roleParam });
-    // In a real application, you would submit to API here.
     alert(`Registration successful as a ${getRoleDisplayName(roleParam)}!`);
   };
 
@@ -67,6 +172,48 @@ function RegisterFormContent() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Invite Code Validation Section for Vendors */}
+          {roleParam === "vendor" && (
+            <div className="space-y-2 border-b border-[#F2CA50]/15 pb-4 mb-4">
+              <label className="block text-xs uppercase tracking-widest text-stone-300 font-sans font-semibold mb-2">
+                Invitation Code
+              </label>
+              <input
+                type="text"
+                required
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                placeholder="e.g. INV-XXXXX"
+                className="w-full px-4 py-3 bg-[#F2CA50]/8 border border-[#F2CA50]/20 focus:border-[#F2CA50] focus:ring-1 focus:ring-[#F2CA50] text-[#F2CA50] placeholder-stone-500 rounded-sm outline-none transition-all duration-200 text-sm font-sans font-semibold tracking-wider uppercase"
+              />
+              
+              {/* Validation Status Badges/Messages */}
+              {validationStatus === "idle" && (
+                <p className="text-[11px] text-stone-400 font-sans">
+                  Please enter the invitation code sent by the system administrator.
+                </p>
+              )}
+              {validationStatus === "invalid" && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-sm text-[11px] leading-relaxed">
+                  <span className="font-semibold uppercase block mb-0.5">Invalid Code</span>
+                  The invitation code entered does not match our records. Please verify the code.
+                </div>
+              )}
+              {validationStatus === "expired" && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-sm text-[11px] leading-relaxed">
+                  <span className="font-semibold uppercase block mb-0.5">Expired Invitation</span>
+                  This invitation has expired. Please contact the administrator.
+                </div>
+              )}
+              {validationStatus === "valid" && matchedInvite && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-sm text-[11px] leading-relaxed">
+                  <span className="font-semibold uppercase block mb-0.5">Invitation Verified</span>
+                  Invite confirmed for <strong className="text-stone-200">{matchedInvite.name}</strong> as an elite <strong className="text-stone-200">{matchedInvite.category}</strong> provider.
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Full Name */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-stone-300 font-sans font-semibold mb-2">
@@ -90,10 +237,13 @@ function RegisterFormContent() {
             <input
               type="email"
               required
+              readOnly={roleParam === "vendor" && validationStatus === "valid"}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="Enter your email address"
-              className="w-full px-4 py-3 bg-[#F2CA50]/8 border border-[#F2CA50]/20 focus:border-[#F2CA50] focus:ring-1 focus:ring-[#F2CA50] text-stone-100 rounded-sm outline-none transition-all duration-200 text-sm font-sans placeholder-zinc-400"
+              className={`w-full px-4 py-3 bg-[#F2CA50]/8 border border-[#F2CA50]/20 focus:border-[#F2CA50] focus:ring-1 focus:ring-[#F2CA50] text-stone-100 rounded-sm outline-none transition-all duration-200 text-sm font-sans placeholder-zinc-400 ${
+                roleParam === "vendor" && validationStatus === "valid" ? "opacity-60 cursor-not-allowed bg-stone-900/40 border-stone-850" : ""
+              }`}
             />
           </div>
 
@@ -166,7 +316,10 @@ function RegisterFormContent() {
           {/* Action Button */}
           <button
             type="submit"
-            className="w-full mt-2 py-3.5 bg-[#F2CA50] hover:bg-[#e0b83b] text-stone-950 font-sans font-semibold tracking-[0.12em] rounded-sm uppercase transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(242,202,80,0.3)] cursor-pointer text-sm sm:text-base"
+            disabled={roleParam === "vendor" && validationStatus !== "valid"}
+            className={`w-full mt-2 py-3.5 bg-[#F2CA50] hover:bg-[#e0b83b] text-stone-950 font-sans font-semibold tracking-[0.12em] rounded-sm uppercase transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(242,202,80,0.3)] cursor-pointer text-sm sm:text-base ${
+              roleParam === "vendor" && validationStatus !== "valid" ? "opacity-30 cursor-not-allowed bg-stone-900 text-stone-600 border border-stone-800 hover:scale-100 hover:shadow-none" : ""
+            }`}
           >
             Sign Up
           </button>

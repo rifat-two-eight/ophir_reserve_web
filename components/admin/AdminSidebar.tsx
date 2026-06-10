@@ -42,6 +42,21 @@ const navItems = [
     ),
   },
   {
+    id: "invitations",
+    label: "Invitations",
+    href: "/admin/invitations",
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+          d="M3 19v-8.93a2 2 0 01.89-1.664l8-5.333a2 2 0 012.22 0l8 5.333A2 2 0 0121 10.07V19a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+        />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+          d="M15 11l-3 3m0 0l-3-3m3 3V8"
+        />
+      </svg>
+    ),
+  },
+  {
     id: "transactions",
     label: "Transactions",
     href: "/admin/transactions",
